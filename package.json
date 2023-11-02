@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "tsc && webpack --config build/webpack.config.js",
-    "devStart": "node watcher.js C:/DevFolder/js-packages/jsDebugCompanion/src"
+    "devStart": "npm start && node watcher.js C:/DevFolder/js-packages/jsDebugCompanion/src"
   },
   "keywords": [],
   "author": "",

@@ -13,12 +13,12 @@ const getListenerMethodPerMode = (modeName: string) => {
 
 const variableDeclarer = Object.assign(
   new VariableDeclarer().getEntryPoints(),
-  getListenerMethodPerMode("variableDeclarer")
+  getListenerMethodPerMode("VariableDeclarer")
 );
 
 const objectMonitor = Object.assign(
   ObjectMonitor.getEntryPoints(),
-  getListenerMethodPerMode("objectMonitor")
+  getListenerMethodPerMode("ObjectMonitor")
 );
 
 export { variableDeclarer, objectMonitor };

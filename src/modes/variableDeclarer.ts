@@ -1,3 +1,4 @@
+import { mapListenerEventPerMode } from './../utils/index';
 import { GenericObject, IDebuggerMode } from "../types/index";
 import eventBus from "../utils/eventBus";
 
@@ -8,6 +9,7 @@ export type changeListerFunction = (configObject: {
 }) => void;
 
 class VariableDeclarer implements IDebuggerMode {
+  static eventModes = mapListenerEventPerMode("VariableDeclarer");
   variables: GenericObject = {};
   private isValidVariableName(varName: string): boolean {
     return !!/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(varName);
@@ -25,7 +27,7 @@ class VariableDeclarer implements IDebuggerMode {
       Object.defineProperty(targetObject, variableName, {
         get: () => this.variables[variableName],
         set: (value) => {
-          eventBus.trigger("variableDeclarer-change", {
+          eventBus.trigger(VariableDeclarer.eventModes["CHANGE"], {
             variableThatChanged: variableName,
             oldValue: this.variables[variableName],
             newValue: value,
@@ -34,7 +36,7 @@ class VariableDeclarer implements IDebuggerMode {
         },
       });
     } catch (e) {
-      eventBus.trigger('variableDeclarer-error', {
+      eventBus.trigger(VariableDeclarer.eventModes["ERROR"], {
         error: e
       });
       return false;
