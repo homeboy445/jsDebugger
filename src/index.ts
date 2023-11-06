@@ -17,8 +17,7 @@ const variableDeclarer = Object.assign(
 );
 
 const objectMonitor = Object.assign(
-  ObjectMonitor.getEntryPoints(),
-  getListenerMethodPerMode("ObjectMonitor")
+  ObjectMonitor.getEntryPoints()
 );
 
 export { variableDeclarer, objectMonitor };
