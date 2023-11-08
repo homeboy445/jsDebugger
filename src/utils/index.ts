@@ -1,13 +1,9 @@
 
-export const mapListenerEventPerMode = (mode: string) => {
-  return {
-    ["CHANGE"]: `${mode}-change`,
-    ["ERROR"]: `${mode}-error`
-  };
-}
-
 export const getEventModeGetter = (modeName: string) => {
-  const events = mapListenerEventPerMode(modeName);
+  const events = {
+    ["CHANGE"]: `${modeName}-change`,
+    ["ERROR"]: `${modeName}-error`
+  };
   return (id: number) => {
     return {
       CHANGE: events.CHANGE + ":" + id,

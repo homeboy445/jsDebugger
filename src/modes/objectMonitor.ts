@@ -1,4 +1,4 @@
-import { getEventModeGetter, isObject, mapListenerEventPerMode } from "./../utils/index";
+import { getEventModeGetter, isObject } from "./../utils/index";
 import { GenericObject, IDebuggerMode } from "../types/index";
 import eventBus from "../utils/eventBus";
 
@@ -11,6 +11,19 @@ type onChangeObject = {
 class ObjectMonitor implements IDebuggerMode {
   static getEventModes = getEventModeGetter("ObjectMonitor");
   operationCounter = 0;
+  registerEventListeners(
+    operationId: number,
+    {
+      onChange,
+      onError,
+    }: {
+      onChange: (data: onChangeObject) => void;
+      onError: (error: any) => void;
+    }
+  ) {
+    eventBus.on(ObjectMonitor.getEventModes(operationId).CHANGE, onChange);
+    eventBus.on(ObjectMonitor.getEventModes(operationId).ERROR, onError);
+  }
   attachProperty(
     targetObject: GenericObject,
     propertyName: string,
@@ -31,7 +44,12 @@ class ObjectMonitor implements IDebuggerMode {
             oldValue: valueStore,
           });
           if (isObject(newValue)) {
-            valueStore = this.iterateRescursivelyAndConstructDebugObject(newValue, {}, operationId, path);
+            valueStore = this.iterateRescursivelyAndConstructDebugObject(
+              newValue,
+              {},
+              operationId,
+              path
+            );
           } else {
             valueStore = newValue;
           }
@@ -73,28 +91,48 @@ class ObjectMonitor implements IDebuggerMode {
     }
     return baseObject;
   }
-  registerEventListeners(
+  createProxy(
+    targetObject: GenericObject,
     operationId: number,
-    {
-      onChange,
-      onError,
-    }: {
-      onChange: (data: onChangeObject) => void;
-      onError: (error: any) => void;
+    path = ""
+  ): typeof Proxy {
+    for (const propKey in targetObject) {
+      if (isObject(targetObject[propKey])) {
+        targetObject[propKey] = this.createProxy(
+          targetObject[propKey],
+          operationId,
+          path.trim() ? path + "." + propKey : propKey
+        );
+      }
     }
-  ) {
-    eventBus.on(ObjectMonitor.getEventModes(operationId).CHANGE, onChange);
-    eventBus.on(ObjectMonitor.getEventModes(operationId).ERROR, onError);
+    const proxyObj = new Proxy(targetObject, {
+      set: (target: GenericObject, key: string, value: any): boolean => {
+        eventBus.trigger(ObjectMonitor.getEventModes(operationId).CHANGE, {
+          path: path + "." + key,
+          oldValue: target[key],
+          newValue: value,
+        });
+        target[key] = isObject(value)
+          ? this.createProxy(value, operationId, path + "." + key)
+          : value;
+        return true;
+      },
+      get(target: GenericObject, key: string): any {
+        return target[key];
+      },
+    });
+    return proxyObj as any;
   }
   getEntryPoints() {
     return {
-      create: (
+      observe: (
         targetObject: GenericObject,
         callbackStore: {
           onChange: (data: onChangeObject) => void;
           onError: (error: any) => void;
         }
       ): GenericObject => {
+        // TODO: I think we need to use Proxy API only in this case.
         const opId = ++this.operationCounter;
         this.registerEventListeners(opId, callbackStore);
         return this.iterateRescursivelyAndConstructDebugObject(
@@ -102,6 +140,17 @@ class ObjectMonitor implements IDebuggerMode {
           {},
           opId
         );
+      },
+      create: (
+        targetObject: GenericObject = {},
+        callbackStore: {
+          onChange: (data: onChangeObject) => void;
+          onError: (error: any) => void;
+        }
+      ) => {
+        const opId = ++this.operationCounter;
+        this.registerEventListeners(opId, callbackStore);
+        return this.createProxy(targetObject, opId);
       },
       listen: (
         targetObject: GenericObject,
