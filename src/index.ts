@@ -1,8 +1,12 @@
 import ObjectMonitor from "./modes/objectMonitor";
-import VariableDeclarer from "./modes/variableDeclarer";
+import VariableDeclarer from "./modes/variableMonitor/variableDeclarer";
+import VariableMonitor from "./modes/variableMonitor/variableMonitor";
 
-const variableDeclarer = VariableDeclarer.getEntryPoints()
+const variableMonitor = Object.assign(
+  VariableDeclarer.getEntryPoints(),
+  VariableMonitor.getEntryPoints()
+);
 
 const objectMonitor = ObjectMonitor.getEntryPoints();
 
-export { variableDeclarer, objectMonitor };
+export { variableMonitor, objectMonitor };

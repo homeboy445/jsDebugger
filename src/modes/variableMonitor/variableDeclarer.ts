@@ -1,6 +1,6 @@
-import { GenericObject, IDebuggerMode } from "../types/index";
-import eventBus from "../utils/eventBus";
-import { getEventModeGetter } from "../utils/index";
+import { IDebuggerMode, GenericObject } from "../../types/index";
+import eventBus from "../../utils/eventBus";
+import { getEventModeGetter } from "../../utils/index";
 
 type onChangeObject = {
   variableThatChanged: string;
