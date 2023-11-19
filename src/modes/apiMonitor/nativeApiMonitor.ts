@@ -1,4 +1,8 @@
-import { generateDefaultFunctionString, isFunction } from "../../utils/index";
+import {
+  generateDefaultFunctionString,
+  isFunction,
+  stringifyFunction,
+} from "../../utils/index";
 
 /**
  * This class is indended for checking if any native API belonging to any native JS types
@@ -113,6 +117,109 @@ class NativeApiMonitor {
     }
     return overiddenMethods;
   }
+  performDOMApiValidations() {
+    const overriddenMethods = [];
+    if (
+      stringifyFunction(
+        (Object as any).getOwnPropertyDescriptor(Document.prototype, "cookie")
+          .get
+      ) != "function get cookie() { [native code] }"
+    ) {
+      overriddenMethods.push("cookie");
+    }
+    if (
+      stringifyFunction(document.getElementById) !=
+      "function getElementById() { [native code] }"
+    ) {
+      overriddenMethods.push("document.getElementbyId");
+    }
+    if (
+      stringifyFunction(document.querySelector) !=
+      "function querySelector() { [native code] }"
+    ) {
+      overriddenMethods.push("document.querySelector");
+    }
+    return { DOM: overriddenMethods };
+  }
+  performStorageValidations() {
+    const overiddenMethods: {
+      localStorage: string[];
+      sessionStorage: string[];
+    } = { localStorage: [], sessionStorage: [] };
+    if (
+      stringifyFunction(localStorage.getItem) !=
+      generateDefaultFunctionString("getItem")
+    ) {
+      overiddenMethods["localStorage"].push("getItem");
+    }
+    if (
+      stringifyFunction(localStorage.setItem) !=
+      generateDefaultFunctionString("setItem")
+    ) {
+      overiddenMethods["localStorage"].push("setItem");
+    }
+    if (
+      stringifyFunction(sessionStorage.getItem) !=
+      generateDefaultFunctionString("getItem")
+    ) {
+      overiddenMethods["sessionStorage"].push("getItem");
+    }
+    if (
+      stringifyFunction(sessionStorage.setItem) !=
+      generateDefaultFunctionString("setItem")
+    ) {
+      overiddenMethods["sessionStorage"].push("setItem");
+    }
+    return overiddenMethods;
+  }
+  performBrowserApiValidations() {
+    const overridenMethods = [];
+    if (
+      Function.prototype.toString.call(fetch) !=
+      "function fetch() { [native code] }"
+    ) {
+      overridenMethods.push("fetch");
+    }
+    if (
+      Function.prototype.toString.call(Promise) !=
+      "function Promise() { [native code] }"
+    ) {
+      overridenMethods.push("Promise");
+    }
+    const resolvePromise = new Promise((r) => r(1));
+    if (
+      stringifyFunction(resolvePromise.then) !=
+      "function then() { [native code] }"
+    ) {
+      overridenMethods.push("Promise.then");
+    }
+    if (
+      stringifyFunction(resolvePromise.catch) !=
+      "function catch() { [native code] }"
+    ) {
+      overridenMethods.push("Promise.catch");
+    }
+    if (
+      stringifyFunction(XMLHttpRequest) !=
+      "function XMLHttpRequest() { [native code] }"
+    ) {
+      overridenMethods.push("XMLHttpRequest");
+    }
+    if (stringifyFunction(Worker) != "function Worker() { [native code] }") {
+      overridenMethods.push("Worker");
+    }
+    if (
+      stringifyFunction(ServiceWorker) !=
+      "function ServiceWorker() { [native code] }"
+    ) {
+      overridenMethods.push("ServiceWorker");
+    }
+    return {
+      "Browser": overridenMethods,
+      ...this.performDOMApiValidations(),
+      ...this.performStorageValidations()
+    };
+  }
   getEntryPoints() {
     const _this = this;
     return {
@@ -121,6 +228,7 @@ class NativeApiMonitor {
           Array: _this.performArrayValidation(),
           Object: _this.performObjectValidations(),
           JSON: _this.performJSONValidations(),
+          ..._this.performBrowserApiValidations()
         };
       },
     };

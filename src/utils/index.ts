@@ -20,3 +20,5 @@ export const isObject = (element: any): boolean => {
 
 export const generateDefaultFunctionString = (functionName: string) =>
   `function ${functionName}() { [native code] }`;
+
+export const stringifyFunction = (functionInstance: Function) => Function.prototype.toString.call(functionInstance);
