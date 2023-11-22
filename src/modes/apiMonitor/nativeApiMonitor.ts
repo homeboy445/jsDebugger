@@ -4,11 +4,59 @@ import {
   stringifyFunction,
 } from "../../utils/index";
 
+export enum supportTypes {
+  "COOKIE" = "COOKIE",
+}
+
+/**
+ * This class will encapsulate the tracking of each native APIs.
+ */
+class APITracker {
+  public attachCookieListener(callback: (valueToBeStored: string, newValue: string) => void): boolean {
+    const target: any = Document.prototype || document;
+    const cookieProps = Object.getOwnPropertyDescriptor(target, "cookie");
+    if (!cookieProps) {
+      return false;
+    }
+    try {
+      Object.defineProperty(target, '__cookie_proxy', cookieProps);
+      Object.defineProperty(target, 'cookie', {
+        ...cookieProps,
+        get: () => {
+          return (document as any)["__cookie_proxy"];
+        },
+        set: (val: string) => {
+          (document as any)["__cookie_proxy"] = val;
+          callback(val, (document as any)["__cookie_proxy"]);
+          return true;
+        }
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  /**
+   * This will attach the listener for specific native APIs.
+   * @param type String
+   * @param callback Function
+   * @returns boolean
+   */
+  public attachListener(type: supportTypes, callback: (valueToBeStored: string, newValue: string) => void): boolean {
+    const _this = this;
+    console.log("~~> ", _this);
+    switch(type) {
+      case supportTypes.COOKIE: return _this.attachCookieListener(callback);
+    }
+    return false;
+  }
+}
+
 /**
  * This class is indended for checking if any native API belonging to any native JS types
  * are overridden, e.g `Array.prototype.forEach`, etc.
  */
-class NativeApiMonitor {
+class NativeApiMonitor extends APITracker {
   performArrayValidation(): string[] {
     const arrayMethods = [
       "push",
@@ -127,15 +175,19 @@ class NativeApiMonitor {
     ) {
       overriddenMethods.push("cookie");
     }
+    const documentCookieProps = Object.getOwnPropertyDescriptor(document, 'cookie');
+    if (documentCookieProps && documentCookieProps.get && overriddenMethods.at(-1) != "cookie") {
+      overriddenMethods.push("cookie");
+    }
     if (
       stringifyFunction(document.getElementById) !=
-      "function getElementById() { [native code] }"
+      generateDefaultFunctionString("getElementById")
     ) {
       overriddenMethods.push("document.getElementbyId");
     }
     if (
       stringifyFunction(document.querySelector) !=
-      "function querySelector() { [native code] }"
+      generateDefaultFunctionString("querySelector")
     ) {
       overriddenMethods.push("document.querySelector");
     }
@@ -176,43 +228,46 @@ class NativeApiMonitor {
     const overridenMethods = [];
     if (
       Function.prototype.toString.call(fetch) !=
-      "function fetch() { [native code] }"
+      generateDefaultFunctionString("fetch")
     ) {
       overridenMethods.push("fetch");
     }
     if (
       Function.prototype.toString.call(Promise) !=
-      "function Promise() { [native code] }"
+      generateDefaultFunctionString("Promise")
     ) {
       overridenMethods.push("Promise");
     }
     const resolvePromise = new Promise((r) => r(1));
     if (
       stringifyFunction(resolvePromise.then) !=
-      "function then() { [native code] }"
+      generateDefaultFunctionString("then")
     ) {
       overridenMethods.push("Promise.then");
     }
     if (
       stringifyFunction(resolvePromise.catch) !=
-      "function catch() { [native code] }"
+      generateDefaultFunctionString("catch")
     ) {
       overridenMethods.push("Promise.catch");
     }
     if (
       stringifyFunction(XMLHttpRequest) !=
-      "function XMLHttpRequest() { [native code] }"
+      generateDefaultFunctionString("XMLHttpRequest")
     ) {
       overridenMethods.push("XMLHttpRequest");
     }
-    if (stringifyFunction(Worker) != "function Worker() { [native code] }") {
+    if (stringifyFunction(Worker) != generateDefaultFunctionString("Worker")) {
       overridenMethods.push("Worker");
     }
     if (
       stringifyFunction(ServiceWorker) !=
-      "function ServiceWorker() { [native code] }"
+      generateDefaultFunctionString("ServiceWorker")
     ) {
       overridenMethods.push("ServiceWorker");
+    }
+    if (generateDefaultFunctionString("addEventListener")) {
+      overridenMethods.push("addEventListener");
     }
     return {
       "Browser": overridenMethods,
@@ -231,6 +286,7 @@ class NativeApiMonitor {
           ..._this.performBrowserApiValidations()
         };
       },
+      attachListener: _this.attachListener.bind(_this)
     };
   }
 }
