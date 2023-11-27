@@ -1,6 +1,8 @@
 
 # jsDebugger
 
+NOTE: This DOC is WIP.
+
 The `jsDebugger` library offers a comprehensive set of tools designed to monitor, track, and validate various aspects of JavaScript runtime environments. This library comprises several modules:
 
 ## ObjectMonitor
