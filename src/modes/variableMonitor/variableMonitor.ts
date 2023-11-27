@@ -31,12 +31,19 @@ class VariableMonitor {
        * This will monitor the provided variable path pre-existing on windows object and
        * will trigger the callback as soon as there's any change in the value.
        * This method can be used to monitor the changes inside an object existing on windows object as well.
-       * @param variablePath
+       * Note: This method polls for any changes per browser render cycle (approx.) by default, but it can also accept
+       * an arbitrary timer as well: `monitorOnWindows("a", { config: { timer: 1000 } })`.
+       * ```
+       * window.obj = { "a": { "b": { "c": 1 } } };
+       * monitorOnWindows("a.b.c", { onChange: (data) => console.log(data), onError: (err) => console.log(err) });
+       * ```
+       * @param variablePath string
+       * @param callbackStore Object
        */
       monitorOnWindows(
         variablePath: string,
         callbackStore: {
-          config?: { timeout?: number },
+          config?: { timer?: number },
           onChange: (data: onChangeObject) => void;
           onError: (error: any) => void;
         }
@@ -46,7 +53,7 @@ class VariableMonitor {
           }
         | false {
         // TODO: Add proper error handling!
-        const { run, cancel } = _this.getRefreshRateExecutor(callbackStore?.config?.timeout);
+        const { run, cancel } = _this.getRefreshRateExecutor(callbackStore?.config?.timer);
         const pathArr = variablePath.split(".");
         const targetProp: string = pathArr.pop() || "";
         const getValue = () => {

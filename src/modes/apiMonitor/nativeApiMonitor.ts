@@ -44,7 +44,6 @@ class APITracker {
    */
   public attachListener(type: supportTypes, callback: (valueToBeStored: string, newValue: string) => void): boolean {
     const _this = this;
-    console.log("~~> ", _this);
     switch(type) {
       case supportTypes.COOKIE: return _this.attachCookieListener(callback);
     }

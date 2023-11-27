@@ -125,6 +125,12 @@ class ObjectMonitor implements IDebuggerMode {
   }
   getEntryPoints() {
     return {
+      /**
+       * This is observes for any changes in the provided object.
+       * @param targetObject 
+       * @param callbackStore 
+       * @returns 
+       */
       observe: (
         targetObject: GenericObject,
         callbackStore: {

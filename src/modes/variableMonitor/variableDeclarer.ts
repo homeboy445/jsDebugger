@@ -67,6 +67,26 @@ class VariableDeclarer implements IDebuggerMode {
     const _this = this;
     // If the below function returns 'true', then it means the operation is a success, otherwise not.
     return {
+      /**
+       * This will declare a variable on the global window object and will track any and all changes
+       * that happens to the variable. e.g.
+       * ```
+       * const callbackObject = {onChange: (data) => console.log(data), onError: (error) => console.error(error)};
+       * declareOnWindow("testing", 1, );
+       * // now doing
+       * testing = 2;
+       * // will call the onChange function with the changed value.
+       * // output: { variableThatChanged: "testing", oldValue: 1, newValue: 2 }
+       * ``` 
+       * @param variableName - string
+       * @param initialValue - any
+       * @param callbackStore - (onChange: ({
+            variableThatChanged: string;
+            oldValue: any;
+            newValue: any;
+        }) => void, onError: (error) => void)
+       * @returns void
+       */
       declareOnWindow(
         variableName: string,
         initialValue: any,
@@ -82,6 +102,27 @@ class VariableDeclarer implements IDebuggerMode {
           callbackStore
         );
       },
+      /**
+       * This will declare a variable on an arbitrary object and will track any and all changes
+       * that happens to the key of the provided target object. e.g.
+       * ```
+       * const obj = {};
+       * const callbackObject = {onChange: (data) => console.log(data), onError: (error) => console.error(error)};
+       * declareOnArbitraryObject(obj, "testing", 1, callbackObject);
+       * // In case of any change, onChange will be called with appropriate changed value, like so:
+       * obj.testing = 2;
+       * // output: { variableThatChanged: "testing", oldValue: 1, newValue: 2 }
+       * ```
+       * @param targetObject Object
+       * @param variableName string
+       * @param initialValue any
+       * @param callbackStore (onChange: ({
+            variableThatChanged: string;
+            oldValue: any;
+            newValue: any;
+        }) => void, onError: (error) => void)
+       * @returns void
+       */
       declareOnArbitraryObject(
         targetObject: GenericObject,
         variableName: string,
