@@ -5,13 +5,15 @@
   "main": "index.js",
   "scripts": {
     "start": "tsc && webpack --config build/webpack.config.js",
-    "devStart": "node watcher.js C:/DevFolder/js-packages/jsDebugCompanion/src"
+    "devStart": "npm start && node watcher.js src",
+    "release": "cross-env BUILD_MODE=PROD webpack --config build/webpack.config.js && mv dist/bundle.js release"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "homeboy445",
+  "license": "MIT",
   "devDependencies": {
     "@babel/preset-env": "^7.23.2",
+    "cross-env": "^7.0.3",
     "ts-loader": "^9.5.0",
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4"

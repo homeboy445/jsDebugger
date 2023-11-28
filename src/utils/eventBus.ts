@@ -8,7 +8,7 @@ class EventBus {
     off(event: string): void {
         delete this.eventStore[event];
     }
-    trigger(event: string, data: any): void {
+    trigger(event: string, data?: any): void {
         for (let i = 0; i < (this.eventStore[event]?.length || 0); i++) {
             this.eventStore[event][i](data);
         }

@@ -1,24 +1,15 @@
 import ObjectMonitor from "./modes/objectMonitor";
-import VariableDeclarer from "./modes/variableDeclarer";
-import eventBus from "./utils/eventBus";
+import VariableDeclarer from "./modes/variableMonitor/variableDeclarer";
+import NativeApiMonitor from "./modes/apiMonitor/nativeApiMonitor";
+import VariableMonitor from "./modes/variableMonitor/variableMonitor";
 
-const getListenerMethodPerMode = (modeName: string) => {
-  return {
-    on: (eventName: string, callback: (...args: any) => void) =>
-      eventBus.on.call(eventBus, `${modeName}-${eventName}`, callback),
-    off: (eventName: string) =>
-      eventBus.off.call(eventBus, `${modeName}-${eventName}`),
-  };
-};
-
-const variableDeclarer = Object.assign(
-  new VariableDeclarer().getEntryPoints(),
-  getListenerMethodPerMode("variableDeclarer")
+const variableMonitor = Object.assign(
+  VariableDeclarer.getEntryPoints(),
+  VariableMonitor.getEntryPoints()
 );
 
-const objectMonitor = Object.assign(
-  ObjectMonitor.getEntryPoints(),
-  getListenerMethodPerMode("objectMonitor")
-);
+const objectMonitor = ObjectMonitor.getEntryPoints();
 
-export { variableDeclarer, objectMonitor };
+const nativeApiMonitor = NativeApiMonitor.getEntryPoints();
+
+export { variableMonitor, objectMonitor, nativeApiMonitor };

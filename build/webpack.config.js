@@ -1,17 +1,32 @@
+const fs = require("fs");
 const path = require("path");
+const webpack = require("webpack");
 
-const isDevBuild = "DEV" || process.env.BUILD_MODE == "DEV";
-console.log("=> Building for ", isDevBuild ? "'DEV'" : "'PROD'", " mode");
+const licenseContent = fs.readFileSync(
+  path.resolve(__dirname, "../LICENSE"),
+  "utf8"
+);
+const isDevBuild = process.env.BUILD_MODE || "DEV";
+console.log(
+  "=> Building for ",
+  isDevBuild == "DEV" ? "'DEV'" : "'PROD'",
+  " mode >>",
+  process.env.BUILD_MODE
+);
 const baseConfig = {
   entry: path.join(__dirname, "../src/index.ts"),
   output: {
+    filename: "bundle.js",
     path: path.resolve(__dirname, "../dist"),
-    library: "jsDebugger"
+    library: "jsDebugger",
+    iife: true,
   },
+  // devtool: false,
   resolve: {
-    extensions: ['.ts', '.js', '.json']
+    extensions: [".ts", ".js", ".json"],
   },
-  mode: isDevBuild ? "development" : "production",
+  mode: isDevBuild == "DEV" ? "development" : "production",
+  devtool: false,
   module: {
     rules: [
       {
@@ -28,17 +43,14 @@ const baseConfig = {
             presets: [["@babel/preset-env", { targets: "defaults" }]],
           },
         },
-      }
+      },
     ],
   },
+  plugins: [
+    new webpack.BannerPlugin({
+      banner: licenseContent,
+    }),
+  ],
 };
-
-// const umdExportConfig = merge(baseConfig, {
-//   output: { filename: "main.min.js", libraryTarget: "umd", library: "promiseButler", },
-// });
-
-// const commonJsExportConfig = merge(baseConfig, {
-//   output: { filename: "main.cjs", libraryTarget: "commonjs2" },
-// });
 
 module.exports = baseConfig;
