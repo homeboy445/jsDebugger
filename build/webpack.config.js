@@ -16,8 +16,10 @@ console.log(
 const baseConfig = {
   entry: path.join(__dirname, "../src/index.ts"),
   output: {
+    filename: "bundle.js",
     path: path.resolve(__dirname, "../dist"),
     library: "jsDebugger",
+    iife: true,
   },
   // devtool: false,
   resolve: {

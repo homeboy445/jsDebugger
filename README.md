@@ -1,8 +1,6 @@
 
 # jsDebugger
 
-NOTE: This DOC is WIP.
-
 The `jsDebugger` library offers a comprehensive set of tools designed to monitor, track, and validate various aspects of JavaScript runtime environments. This library comprises several modules:
 
 ## ObjectMonitor
@@ -117,6 +115,7 @@ Monitors changes in a variable path existing on the `window` object and triggers
 
 - `variablePath`: The path of the variable to monitor on the `window` object.
 - `callbackStore`: Object containing configuration options (`timer` for polling interval), `onChange`, and `onError` functions to handle change and error events respectively.
+- To stop listening for changes in the provided path, just call the returned `stop()` function.
 
 ### Usage
 
@@ -127,7 +126,7 @@ const variableDeclarer = new VariableDeclarer();
 const entryPoints = variableDeclarer.getEntryPoints();
 
 // Declare a variable on the global window object
-entryPoints.declareOnWindow('testVar', 10, {
+jsDebugger.variableMonitor.declareOnWindow("testVar", 1, {
   onChange: (data) => {
     console.log('Variable change:', data);
   },
@@ -135,10 +134,12 @@ entryPoints.declareOnWindow('testVar', 10, {
     console.error('Error:', error);
   },
 });
+testVar = 11;
+// will output: 'Variable change: {variableThatChanged: 'testVar', oldValue: 1, newValue: 11}'
 
 // Declare a variable on an arbitrary object
-const targetObject = { key: 'value' };
-entryPoints.declareOnArbitraryObject(targetObject, 'testVar', 20, {
+const obj = {};
+jsDebugger.variableMonitor.declareOnArbitraryObject(obj, "testVar", 1, {
   onChange: (data) => {
     console.log('Variable change:', data);
   },
@@ -146,8 +147,12 @@ entryPoints.declareOnArbitraryObject(targetObject, 'testVar', 20, {
     console.error('Error:', error);
   },
 });
+obj.testVar = 2;
+// will output: 'Variable change: {variableThatChanged: 'testVar', oldValue: 1, newValue: 2}'
+
 // Monitor changes in a variable path on the window object
-const monitor = variableMonitor.monitorOnWindows('a.b.c', {
+var main = { _test_var: 2 };
+const executionController = jsDebugger.variableMonitor.monitorOnWindows("main._test_var",  {
   onChange: (data) => {
     console.log('Variable change:', data);
   },
@@ -155,14 +160,16 @@ const monitor = variableMonitor.monitorOnWindows('a.b.c', {
     console.error('Error:', error);
   },
 });
+window.main._test_var++;
+// will output: 'Variable change: {newValue: 2, oldValue: 1}'
+// do `executionController.stop()` in case you need to stop observing the path.
 ```
+
 
 ## Native Constants Override Checker
 ### Returns an object providing functionalities to track and validate native API overrides.
 
 ### Methods
-
----
 
 #### `performValidations(): Object`
 
@@ -176,6 +183,7 @@ Performs validations on various native APIs and returns an object with overridde
 - `localStorage`: An array specifying overridden methods within the `localStorage` object.
 - `sessionStorage`: An array highlighting overridden methods within the `sessionStorage` object.
 
+---
 
 #### `attachListener(type: supportTypes, callback: Function): boolean`
 

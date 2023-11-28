@@ -6,7 +6,7 @@
   "scripts": {
     "start": "tsc && webpack --config build/webpack.config.js",
     "devStart": "npm start && node watcher.js src",
-    "release": "cross-env BUILD_MODE=PROD webpack --config build/webpack.config.js && mv dist/main.js release"
+    "release": "cross-env BUILD_MODE=PROD webpack --config build/webpack.config.js && mv dist/bundle.js release"
   },
   "keywords": [],
   "author": "homeboy445",
