@@ -27,6 +27,10 @@ Helps in exploring the functionalities of each module and utilize the provided t
 
 # API Usage
 
+The main file is located at release/bundle.js
+
+CDN link: https://cdn.jsdelivr.net/gh/homeboy445/jsDebugger@main/release/bundle.js
+
 ## Object Monitor
 
 ### Returns an object providing specific functionalities to observe, create proxies, and listen to changes within JavaScript objects.
