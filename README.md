@@ -199,13 +199,13 @@ Note: currently the only supported type is "cookie".
 Example usage of the exposed entry points:
 
 ```javascript
-const apiTracker = new APITracker().getEntryPoints();
+const apiTracker = jsDebugger.nativeApiMonitor;
 
 // Perform validations on native APIs
 const validations = apiTracker.performValidations();
 console.log('API Validations:', validations);
 
-// Attach listener to monitor specific API changes
+// Attach a listener to monitor specific API changes
 apiTracker.attachListener("cookie", (valueToBeStored, newValue) => {
   console.log('Cookie change detected:', valueToBeStored, '->', newValue);
 });
